@@ -1,0 +1,12 @@
+# Object files
+*.o
+
+# Executables
+benchmark
+
+# OS Specific
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
