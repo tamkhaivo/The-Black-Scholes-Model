@@ -1,44 +1,51 @@
 #include "The_Black_Scholes_Model_Reference.h"
 #include <cmath>
-#include <numbers> // C++20
+#include <numbers>
 
 namespace BlackScholesModelReference {
+
 using namespace std;
 
 float norm_cdf(float x) {
-  float k = 1.0f / (1.0f + 0.2316419f * abs(x));
-  float y =
-      1.0f -
-      1.0f / sqrt(2.0f * std::numbers::pi_v<float>) * exp(-0.5f * x * x) *
-          (k * (0.319381530f +
-                k * (0.356563782f +
-                     k * (1.781477937f + k * (1.821255978f + k * 1.70464237f)))));
-  return y;
+  // Constants for approximation of the cumulative distribution function
+  float a1 = 0.319381530;
+  float a2 = -0.356563782;
+  float a3 = 1.781477937;
+  float a4 = -1.821255978;
+  float a5 = 1.330274429;
+
+  float l = abs(x);
+  float k = 1.0 / (1.0 + 0.2316419 * l);
+  float w = 1.0 - 1.0 / sqrt(2 * std::numbers::pi_v<float>) * exp(-l * l / 2) *
+                      (a1 * k + a2 * k * k + a3 * pow(k, 3) + a4 * pow(k, 4) +
+                       a5 * pow(k, 5));
+
+  if (x < 0) {
+    return 1.0 - w;
+  } else {
+    return w;
+  }
 }
 
-/*
-Current Asset Price (S0): The spot price of the underlying stock.
-Strike Price (K): The pre-determined price at which the option can be exercised.
-Time to Maturity (T): The time remaining until the option expires, usually
-expressed in years.
-Risk-Free Interest Rate (r): The theoretical rate of return
-on an investment with zero risk (commonly the yield on U.S. Treasury bills).
-Volatility (σ): The standard deviation of the stock's returns. This is the most
-critical and difficult parameter to estimate.
-
-*/
-float black_scholes(float *currentAssetPrice, float *strikePrice,
-                    float *riskFreeRate, float *volatility,
-                    float *timeToMaturityInYears) {
+float black_scholes(const float *currentAssetPrice, const float *strikePrice,
+                    const float *riskFreeRate, const float *volatility,
+                    const float *timeToMaturity) {
   float d1 = (log(*currentAssetPrice / *strikePrice) +
-              (*riskFreeRate + 0.5 * *volatility * *volatility) *
-                  *timeToMaturityInYears) /
-             (*volatility * sqrt(*timeToMaturityInYears));
+              (*riskFreeRate + *volatility * *volatility / 2) *
+                  *timeToMaturity) /
+             (*volatility * sqrt(*timeToMaturity));
+  float d2 = d1 - *volatility * sqrt(*timeToMaturity);
 
-  float d2 = d1 - *volatility * sqrt(*timeToMaturityInYears);
   return *currentAssetPrice * norm_cdf(d1) -
-         *strikePrice * exp(-*riskFreeRate * *timeToMaturityInYears) *
-             norm_cdf(d2);
+         *strikePrice * exp(-*riskFreeRate * *timeToMaturity) * norm_cdf(d2);
+}
+
+void black_scholes_batch(const float* S, const float* K, const float* r, 
+                        const float* v, const float* T, 
+                        float* CallPrices, size_t count) {
+    for (size_t i = 0; i < count; ++i) {
+        CallPrices[i] = black_scholes(&S[i], &K[i], &r[i], &v[i], &T[i]);
+    }
 }
 
 } // namespace BlackScholesModelReference

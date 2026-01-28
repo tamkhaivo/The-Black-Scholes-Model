@@ -32,7 +32,7 @@ TARGET_BENCH  := $(BUILD_DIR)/benchmark$(EXT)
 # Source Lists
 # Wildcard might be evaluating early or failing on Windows if not careful? 
 # Using explicit list for debugging or try different syntax. Usually wildcard works.
-SRCS          := src/main.cpp src/Benchmark.cpp src/The_Black_Scholes_Model_Reference.cpp src/The_Black_Scholes_Model_Value.cpp
+SRCS          := src/main.cpp src/Benchmark.cpp src/The_Black_Scholes_Model_Reference.cpp src/The_Black_Scholes_Model_Value.cpp src/The_Black_Scholes_Model_Naive.cpp src/The_Black_Scholes_Model_Optimized.cpp src/The_Black_Scholes_Model_AI_Optimized.cpp
 OBJS          := $(patsubst src/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
 # TEST_SRCS
