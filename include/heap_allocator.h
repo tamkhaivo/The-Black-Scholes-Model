@@ -45,7 +45,8 @@ public:
      * @throws std::bad_alloc if exhausted
      */
     [[nodiscard]]
-    void* allocate(size_t size, size_t align = DEFAULT_ALIGNMENT) {
+    [[nodiscard]]
+    void* allocate(size_t size, size_t alignment = DEFAULT_ALIGNMENT) {
         // Current pointer
         void* ptr = static_cast<void*>(m_storage.get() + m_offset);
         
@@ -53,7 +54,7 @@ public:
         size_t space = m_size - m_offset;
 
         // Use std::align to adjust ptr and check space
-        void* aligned_ptr = align(align, size, ptr, space);
+        void* aligned_ptr = std::align(alignment, size, ptr, space);
 
         if (!aligned_ptr) {
             throw bad_alloc();

@@ -44,10 +44,10 @@ public:
      * @throws std::bad_alloc if stack space is exhausted.
      */
     [[nodiscard]] 
-    void* allocate(size_t size, size_t align = ALIGNMENT) {        
+    void* allocate(size_t size, size_t alignment = ALIGNMENT) {        
         void* ptr = static_cast<void*>(m_Storage + m_Current);
         size_t space = SizeBytes - m_Current;
-        void* aligned_ptr = align(align, size, ptr, space);
+        void* aligned_ptr = std::align(alignment, size, ptr, space);
 
         if (aligned_ptr == nullptr) {
             throw bad_alloc(); 

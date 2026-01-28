@@ -34,7 +34,7 @@ void test_alignment_correctness() {
     StackAllocator::StackAllocator<1024> allocator;
     
     // Allocate a byte to intentionally misalign the next available address
-    allocator.allocate(1, 1);
+    (void)allocator.allocate(1, 1);
     
     // Request highly aligned memory
     AVXStruct* ptr = allocator.allocate_type<AVXStruct>();
@@ -50,9 +50,9 @@ void test_overflow_safety() {
     
     try {
         // Fill it up
-        allocator.allocate(100, 1);
+        (void)allocator.allocate(100, 1);
         // This should fail
-        allocator.allocate(50, 1);
+        (void)allocator.allocate(50, 1);
         assert(false && "Should have thrown bad_alloc");
     } catch (const std::bad_alloc&) {
         std::cout << "Passed (caught bad_alloc)." << std::endl;

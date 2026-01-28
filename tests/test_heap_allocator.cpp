@@ -23,7 +23,7 @@ void test_alignment_correctness() {
     Memory::HeapAllocator allocator(1024);
     
     // Allocate 1 byte to misalign
-    allocator.allocate(1, 1);
+    (void)allocator.allocate(1, 1);
     
     // Request 32-byte alignment
     struct alignas(32) LargeAlign { char data[32]; };
@@ -38,8 +38,8 @@ void test_overflow_safety() {
     Memory::HeapAllocator allocator(128); // Small buffer
     
     try {
-        allocator.allocate(100, 1);
-        allocator.allocate(50, 1); // Should fail
+        (void)allocator.allocate(100, 1);
+        (void)allocator.allocate(50, 1); // Should fail
         assert(false && "Should have thrown bad_alloc");
     } catch (const std::bad_alloc&) {
         std::cout << "Passed (caught bad_alloc)." << std::endl;
@@ -50,7 +50,7 @@ void test_unique_ptr_cleanup() {
     std::cout << "[Test] Cleanup Safety... ";
     {
         Memory::HeapAllocator allocator(1024);
-        allocator.allocate(100);
+        (void)allocator.allocate(100);
     } // Destructor runs here
     std::cout << "Passed (implicit)." << std::endl;
 }
