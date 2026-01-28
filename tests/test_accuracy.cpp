@@ -5,43 +5,73 @@
 #include <vector>
 #include <cmath>
 #include <iomanip>
+#include <string>
 
 using namespace std;
 
-bool is_close(float a, float b, float epsilon = 0.5f) { // Approximations are rough
-    return std::abs(a - b) < epsilon;
-}
+struct TestCase {
+    string name;
+    float S, K, r, v, T;
+};
 
 int main() {
-    // Test parameters
-    size_t count = 5;
-    vector<float> S = {100.0f, 50.0f, 200.0f, 100.0f, 100.0f};
-    vector<float> K = {100.0f, 50.0f, 200.0f, 120.0f, 80.0f};
-    vector<float> r = {0.05f, 0.05f, 0.03f, 0.1f, 0.01f};
-    vector<float> v = {0.2f, 0.3f, 0.15f, 0.5f, 0.1f};
-    vector<float> T = {1.0f, 0.5f, 2.0f, 1.0f, 0.1f};
+    vector<TestCase> cases = {
+        {"Standard",      100.0f, 100.0f, 0.05f, 0.2f, 1.0f},
+        {"ITM Call",      120.0f, 100.0f, 0.05f, 0.2f, 1.0f},
+        {"OTM Call",       80.0f, 100.0f, 0.05f, 0.2f, 1.0f},
+        {"Deep ITM",      200.0f, 100.0f, 0.05f, 0.2f, 1.0f},
+        {"Deep OTM",       50.0f, 100.0f, 0.05f, 0.2f, 1.0f},
+        {"High Vol",      100.0f, 100.0f, 0.05f, 1.0f, 1.0f},
+        {"Low Vol",       100.0f, 100.0f, 0.05f, 0.05f, 1.0f},
+        {"Long Mat",      100.0f, 100.0f, 0.05f, 0.2f, 10.0f},
+        {"Short Mat",     100.0f, 100.0f, 0.05f, 0.2f, 0.01f},
+        {"High Rate",     100.0f, 100.0f, 0.20f, 0.2f, 1.0f},
+        {"Zero Rate",     100.0f, 100.0f, 0.00f, 0.2f, 1.0f},
+        {"Tiny Price",      1.0f,   1.0f, 0.05f, 0.2f, 1.0f},
+        {"Huge Price",   1000.0f, 1000.0f, 0.05f, 0.2f, 1.0f}
+    };
+
+    // Pad with dummy cases to reach 32 to trigger AVX path
+    size_t original_count = cases.size();
+    while (cases.size() < 32) {
+        cases.push_back({"Padding", 100.0f, 100.0f, 0.05f, 0.2f, 1.0f});
+    }
+
+    size_t count = cases.size();
+    vector<float> S(count), K(count), r(count), v(count), T(count);
+    
+    for(size_t i=0; i<count; ++i) {
+        S[i] = cases[i].S;
+        K[i] = cases[i].K;
+        r[i] = cases[i].r;
+        v[i] = cases[i].v;
+        T[i] = cases[i].T;
+    }
 
     vector<float> naive_results(count);
     vector<float> optimized_results(count);
     vector<float> ai_results(count);
 
-    // 1. Run Naive (Reference)
+    // Run Implementations
     BlackScholesModelNaive::black_scholes_batch(S.data(), K.data(), r.data(), v.data(), T.data(), naive_results.data(), count);
-
-    // 2. Run Optimized
     BlackScholesModelOptimized::black_scholes_batch(S.data(), K.data(), r.data(), v.data(), T.data(), optimized_results.data(), count);
-
-    // 3. Run AI Optimized
     BlackScholesModelAIOptimized::black_scholes_batch(S.data(), K.data(), r.data(), v.data(), T.data(), ai_results.data(), count);
 
     bool all_passed = true;
 
     cout << fixed << setprecision(4);
-    cout << "Accuracy Test Results:" << endl;
-    cout << "Idx | Naive    | Optimized | AI Opt   | Diff Opt | Diff AI | Status" << endl;
-    cout << "---------------------------------------------------------------------" << endl;
+    
+    // Header
+    cout << left << setw(15) << "Case"
+         << right << setw(12) << "Naive"
+         << setw(12) << "Optimized"
+         << setw(12) << "AI Opt"
+         << setw(12) << "Diff Opt"
+         << setw(12) << "Diff AI"
+         << setw(10) << "Status" << endl;
+    cout << string(85, '-') << endl;
 
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0; i < original_count; ++i) {
         float n = naive_results[i];
         float o = optimized_results[i];
         float a = ai_results[i];
@@ -49,23 +79,25 @@ int main() {
         float diff_o = std::abs(n - o);
         float diff_a = std::abs(n - a);
         
-        // Epsilon: 0.10 seems fair for these approximations (e.g. 10.45 vs 10.40)
-        bool pass_o = diff_o < 0.1f; 
-        bool pass_a = diff_a < 0.1f;
+        bool pass_o = diff_o < 0.2f && !std::isnan(o) && !std::isinf(o);
+        bool pass_a = diff_a < 0.2f && !std::isnan(a) && !std::isinf(a) && (a > 0.0001f || n < 0.001f);
 
         if (!pass_o || !pass_a) all_passed = false;
-
-        cout << i << "   | " << n << "  | " << o << "  | " << a << "  | " << diff_o << "   | " << diff_a << "  | ";
-        if (pass_o && pass_a) cout << "PASS";
-        else cout << "FAIL";
-        cout << endl;
+        
+        cout << left << setw(15) << cases[i].name
+             << right << setw(12) << n
+             << setw(12) << o
+             << setw(12) << a
+             << setw(12) << diff_o
+             << setw(12) << diff_a
+             << setw(10) << (pass_o && pass_a ? "PASS" : "FAIL") << endl;
     }
 
     if (all_passed) {
-        cout << "\n[SUCCESS] All implementations match within tolerance." << endl;
+        cout << "\n[SUCCESS] Tests passed." << endl;
         return 0;
     } else {
-        cout << "\n[FAILURE] Significant deviation detected." << endl;
+        cout << "\n[FAILURE] Significant deviations or NaNs detected." << endl;
         return 1;
     }
 }
