@@ -1,17 +1,18 @@
 #include "The_Black_Scholes_Model_Reference.h"
 #include <cmath>
+#include <numbers> // C++20
 
 namespace BlackScholesModelReference {
 using namespace std;
 
 float norm_cdf(float x) {
-  float k = 1.0 / (1.0 + 0.2316419 * abs(x));
+  float k = 1.0f / (1.0f + 0.2316419f * abs(x));
   float y =
-      1.0 -
-      1.0 / sqrt(2 * M_PI) * exp(-0.5 * x * x) *
-          (k * (0.319381530 +
-                k * (0.356563782 +
-                     k * (1.781477937 + k * (1.821255978 + k * 1.70464237)))));
+      1.0f -
+      1.0f / sqrt(2.0f * std::numbers::pi_v<float>) * exp(-0.5f * x * x) *
+          (k * (0.319381530f +
+                k * (0.356563782f +
+                     k * (1.781477937f + k * (1.821255978f + k * 1.70464237f)))));
   return y;
 }
 

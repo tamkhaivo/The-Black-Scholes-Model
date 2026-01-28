@@ -10,3 +10,11 @@ benchmark
 # IDEs
 .vscode/
 .idea/
+
+# Build artifacts
+build/
+cmake-build-debug/
+cmake-build-release/
+
+# Gemini
+GEMINI.md
