@@ -9,10 +9,8 @@ The project compares 5 implementations, ranging from readable standard C++ to ag
 1.  **Naive (`std::erfc`)**: Uses the Standard Library `std::erfc` and `std::exp`.
     *   *Pros*: Readable, portable, surprisingly fast on modern compilers.
     *   *Cons*: Scalar execution (one option at a time).
-2.  **Reference**: Standard pointer-based implementation.
-3.  **Value**: Pass-by-value semantics.
-4.  **Optimized (AVX2 Basic)**: Uses explicitly vectorized approximations (`__m256`) for `exp`, `log`, and `cdf`.
-5.  **AI Optimized (AVX2 + FMA + Unroll)**: "No-holds-barred" optimization.
+2.  **Optimized (AVX2 Basic)**: Uses explicitly vectorized approximations (`__m256`) for `exp`, `log`, and `cdf`.
+3.  **AI Optimized (AVX2 + FMA + Unroll)**: "No-holds-barred" optimization.
     *   **Techniques**: FMA3 instructions, `rsqrt`/`rcp` approximations, 4x Loop Unrolling (32 options/iter).
     *   **Performance**: ~1.3 Billion options/sec (Single Thread).
 
@@ -47,7 +45,6 @@ make test
 | Implementation | Time per Option | Throughput | Speedup |
 | :--- | :--- | :--- | :--- |
 | **Naive (Std Lib)** | ~55.0 ns | ~18M/s | 1x |
-| Reference | ~122.7 ns | ~8M/s | 0.45x |
 | Optimized (AVX2) | ~0.91 ns | ~1.1B/s | 60x |
 | **AI Optimized** | **~0.75 ns** | **~1.33B/s** | **73x** |
 
