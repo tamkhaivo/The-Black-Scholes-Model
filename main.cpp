@@ -13,14 +13,17 @@ int main() {
   float volatility = 0.2;
   float timeToMaturity = 1;
   cout << "=== Benchmark ===" << endl;
-  Benchmark::runtimeStats(
+
+  Benchmark::RuntimeStats stats_value;
+  Benchmark::RuntimeStats stats_reference;
+  stats_value = Benchmark::runtimeStats(
       [&]() {
         BlackScholesModelValue::black_scholes(currentAssetPrice, strikePrice,
                                               riskFreeRate, volatility,
                                               timeToMaturity);
       },
       "benchmark_value", 1000000);
-  Benchmark::runtimeStats(
+  stats_reference = Benchmark::runtimeStats(
       [&]() {
         BlackScholesModelReference::black_scholes(&currentAssetPrice,
                                                   &strikePrice, &riskFreeRate,

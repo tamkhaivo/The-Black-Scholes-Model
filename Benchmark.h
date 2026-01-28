@@ -25,6 +25,7 @@ class RuntimeStats {
   Memory::HeapAllocator allocator;
 
 public:
+  RuntimeStats();
   RuntimeStats(size_t max_samples);
   void add(long double duration);
   void calculate();
@@ -41,7 +42,8 @@ template <typename Func> long double runtimeNanoseconds(Func func) {
 }
 
 template <typename Func>
-void runtimeStats(Func func, string_view name, size_t turnsCount = 10000000) {
+RuntimeStats runtimeStats(Func func, string_view name,
+                          size_t turnsCount = 10000000) {
   RuntimeStats stats{turnsCount};
 
   for (size_t i = 0; i < turnsCount; i++) {
@@ -49,8 +51,7 @@ void runtimeStats(Func func, string_view name, size_t turnsCount = 10000000) {
     stats.add(duration);
   }
   stats.calculate();
-
-  RuntimeStats::displayRuntimeStats(name, &stats);
+  return stats;
 }
 
 } // namespace Benchmark

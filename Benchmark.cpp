@@ -3,6 +3,11 @@
 
 namespace Benchmark {
 
+RuntimeStats::RuntimeStats()
+    : count{0}, average{0.0L}, min{std::numeric_limits<long double>::max()},
+      max{std::numeric_limits<long double>::lowest()}, median{0.0L},
+      stdDev{0.0L}, capacity{0}, current_index{0}, allocator(0) {}
+
 RuntimeStats::RuntimeStats(size_t max_samples)
     : count{0}, average{0.0L}, min{std::numeric_limits<long double>::max()},
       max{std::numeric_limits<long double>::lowest()}, median{0.0L},
