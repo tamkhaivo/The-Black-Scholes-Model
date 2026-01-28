@@ -32,7 +32,7 @@ TARGET_BENCH  := $(BUILD_DIR)/benchmark$(EXT)
 # Source Lists
 # Wildcard might be evaluating early or failing on Windows if not careful? 
 # Using explicit list for debugging or try different syntax. Usually wildcard works.
-SRCS          := src/main.cpp src/Benchmark.cpp src/The_Black_Scholes_Model_Reference.cpp src/The_Black_Scholes_Model_Value.cpp src/The_Black_Scholes_Model_Naive.cpp src/The_Black_Scholes_Model_Optimized.cpp src/The_Black_Scholes_Model_AI_Optimized.cpp
+SRCS          := src/main.cpp src/Benchmark.cpp src/The_Black_Scholes_Model_Naive.cpp src/The_Black_Scholes_Model_Optimized.cpp src/The_Black_Scholes_Model_AI_Optimized.cpp
 OBJS          := $(patsubst src/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
 # TEST_SRCS
@@ -59,10 +59,14 @@ $(TARGET_APP): $(OBJS)
 test: $(TEST_EXES)
 	@$(foreach exe,$(TEST_EXES),$(call FIX_PATH,$(exe)) &&) echo All tests passed.
 
+# LIB_OBJS: Objects excluding main and benchmark for linking to tests
+LIB_SRCS := $(filter-out src/main.cpp src/Benchmark.cpp, $(SRCS))
+LIB_OBJS := $(patsubst src/%.cpp, $(BUILD_DIR)/%.o, $(LIB_SRCS))
+
 # Pattern rule for building test executables
-$(BUILD_DIR)/%$(EXT): $(TEST_DIR)/%.cpp
+$(BUILD_DIR)/%$(EXT): $(TEST_DIR)/%.cpp $(LIB_OBJS)
 	@if not exist $(BUILD_DIR) $(MKDIR) $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) $(CXXFLAGS) $< $(LIB_OBJS) -o $@
 
 # Benchmarks
 benchmark: $(TARGET_BENCH)

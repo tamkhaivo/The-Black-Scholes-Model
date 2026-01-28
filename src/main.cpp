@@ -1,6 +1,4 @@
 #include "Benchmark.h"
-#include "The_Black_Scholes_Model_Reference.h"
-#include "The_Black_Scholes_Model_Value.h"
 #include "The_Black_Scholes_Model_Naive.h"
 #include "The_Black_Scholes_Model_Optimized.h"
 #include "The_Black_Scholes_Model_AI_Optimized.h"
@@ -52,27 +50,17 @@ int main() {
   vector<float> T(iterations, timeToMaturity);
   vector<float> CallPrices(iterations);
 
-  // 1. Value Implementation
-  benchmark_batch("Batch_Value", 
-      BlackScholesModelValue::black_scholes_batch, 
-      iterations, S.data(), K.data(), r.data(), v.data(), T.data(), CallPrices.data());
-
-  // 2. Reference Implementation
-  benchmark_batch("Batch_Reference", 
-      BlackScholesModelReference::black_scholes_batch, 
-      iterations, S.data(), K.data(), r.data(), v.data(), T.data(), CallPrices.data());
-
-  // 3. Naive Implementation
+  // 1. Naive Implementation
   benchmark_batch("Batch_Naive (std::erfc)", 
       BlackScholesModelNaive::black_scholes_batch, 
       iterations, S.data(), K.data(), r.data(), v.data(), T.data(), CallPrices.data());
 
-  // 4. Optimized Implementation (AVX2 Basic)
+  // 2. Optimized Implementation (AVX2 Basic)
   benchmark_batch("Batch_Optimized (AVX2 Basic)", 
       BlackScholesModelOptimized::black_scholes_batch, 
       iterations, S.data(), K.data(), r.data(), v.data(), T.data(), CallPrices.data());
 
-  // 5. AI Optimized Implementation (AVX2 + unroll + FMA + fast math)
+  // 3. AI Optimized Implementation (AVX2 + unroll + FMA + fast math)
   benchmark_batch("Batch_AI_Optimized (AVX2+FMA+Unroll)", 
       BlackScholesModelAIOptimized::black_scholes_batch, 
       iterations, S.data(), K.data(), r.data(), v.data(), T.data(), CallPrices.data());

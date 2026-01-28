@@ -59,14 +59,10 @@ inline float fast_norm_cdf(float x) {
 
 // Branchless optimized version of the reference logic
 float black_scholes(float S, float K, float r, float v, float T) {
-    // Precompute constants
     float sqrt_T = std::sqrt(T); // Standard sqrt is often single instruction
     float v_sqrt_T = v * sqrt_T;
     float inv_v_sqrt_T = 1.0f / v_sqrt_T;
     
-    // Use std::log/exp for main formula to ensure pricing accuracy isn't garbage,
-    // unless we aggressively want "benchmark speed" over "correctness".
-    // Let's stick to standard math but minimal operations.
     float d1 = (std::log(S / K) + (r + 0.5f * v * v) * T) * inv_v_sqrt_T;
     float d2 = d1 - v_sqrt_T;
 
@@ -123,17 +119,11 @@ inline __m256 fast_log_avx(__m256 x) {
 inline __m256 fast_norm_cdf_avx(__m256 x) {
     // Constants
     __m256 one = _mm256_set1_ps(1.0f);
-    __m256 half = _mm256_set1_ps(0.5f);
     __m256 zero = _mm256_setzero_ps();
     __m256 sign_mask = _mm256_set1_ps(-0.0f); // 0x80000000
 
     // Abs(x)
     __m256 abs_x = _mm256_andnot_ps(sign_mask, x);
-    
-    // Save sign: if x < 0, mask is 0xFFFFFFFF
-    __m256i x_int = _mm256_castps_si256(x);
-    __m256i sign_i = _mm256_and_si256(x_int, _mm256_castps_si256(sign_mask)); 
-    // Wait, simpler check for sign reconstruction later.
     
     // p = 0.2316419
     __m256 p = _mm256_set1_ps(0.2316419f);

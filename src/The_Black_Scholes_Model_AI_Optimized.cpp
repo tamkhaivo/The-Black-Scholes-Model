@@ -111,9 +111,7 @@ void black_scholes_batch(const float* S, const float* K, const float* r,
     size_t i = 0;
     
     // Constants
-    __m256i mask_sign = _mm256_set1_epi32(0x80000000);
     __m256 half = _mm256_set1_ps(0.5f);
-    __m256 inv_sqrt2 = _mm256_set1_ps(0.70710678f); // Not needed? Naive used it.
     
     // Loop unrolled 4x (32 floats per iteration)
     size_t count32 = count & ~31;
@@ -152,9 +150,6 @@ void black_scholes_batch(const float* S, const float* K, const float* r,
         __m256 inv_sqrt_T2 = _mm256_rsqrt_ps(T2);
         __m256 inv_sqrt_T3 = _mm256_rsqrt_ps(T3);
         
-        // sqrt(T) = T * inv_sqrt_T approximately, or just use _mm256_sqrt_ps if needed for v*sqrt(T).
-        // Actually, d1 = ... / (v * sqrt(T)) = ... * (1/v * 1/sqrt(T))
-        // Let's compute v_sqrt_T = v / inv_sqrt_T ?? No.
         // sqrt(T) ~= T * rsqrt(T)
         // v_sqrt_T = v * (T * rsqrt(T))
         __m256 sqrt_T0 = _mm256_mul_ps(T0, inv_sqrt_T0);
@@ -269,12 +264,9 @@ void black_scholes_batch(const float* S, const float* K, const float* r,
     // but we can't depend on another file safely here if we want isolation. 
     // Just minimal scalar ref loop)
     for (; i < count; ++i) {
-        // Super naive slow fallback, user cares about batch throughput.
-        // Copy-paste basic logic to be self-contained
         float S_ = S[i], K_ = K[i], r_ = r[i], v_ = v[i], T_ = T[i];
         float d1 = (std::log(S_/K_) + (r_ + 0.5f*v_*v_)*T_) / (v_*std::sqrt(T_));
         float d2 = d1 - v_*std::sqrt(T_);
-        // Use standard erf for tail
         auto ncdf = [](float x){ return 0.5f * std::erfc(-x * 0.70710678f); };
         CallPrices[i] = S_ * ncdf(d1) - K_ * std::exp(-r_ * T_) * ncdf(d2);
     }
