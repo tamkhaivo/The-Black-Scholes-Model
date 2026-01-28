@@ -16,6 +16,34 @@ public:
 
   ~HeapAllocator() { delete[] m_storage; }
 
+  // Delete copy constructor and copy assignment
+  HeapAllocator(const HeapAllocator &) = delete;
+  HeapAllocator &operator=(const HeapAllocator &) = delete;
+
+  // Implement move constructor
+  HeapAllocator(HeapAllocator &&other) noexcept
+      : m_size(other.m_size), m_offset(other.m_offset),
+        m_storage(other.m_storage) {
+    other.m_size = 0;
+    other.m_offset = 0;
+    other.m_storage = nullptr;
+  }
+
+  // Implement move assignment
+  HeapAllocator &operator=(HeapAllocator &&other) noexcept {
+    if (this != &other) {
+      delete[] m_storage;
+      m_size = other.m_size;
+      m_offset = other.m_offset;
+      m_storage = other.m_storage;
+
+      other.m_size = 0;
+      other.m_offset = 0;
+      other.m_storage = nullptr;
+    }
+    return *this;
+  }
+
   void *allocate(size_t size) {
     // aligning to 8 bytes
     size_t alignedSize = (size + 7) & ~7;
